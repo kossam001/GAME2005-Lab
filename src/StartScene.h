@@ -5,6 +5,7 @@
 #include "Scene.h"
 #include "Label.h"
 #include "ship.h"
+#include <cmath>
 
 class StartScene : public Scene
 {
@@ -24,6 +25,33 @@ private:
 	Label* m_pInstructionsLabel;*/
 
 	Ship* m_pShip;
+
+	glm::vec2 m_mousePosition;
+
+	// ImGui utility functions
+	void m_ImGuiKeyMap();
+	void m_ImGuiSetStyle();
+	void m_updateUI();
+
+	// ImGui menu variables
+	bool m_exitApp = false;
+	bool m_displayAbout = false;
+	bool m_displayUI = true;
+
+	// Physics Variables
+	bool m_isGravityEnabled = false;
+	float m_gravity = 9.8f;
+	glm::vec2 m_position = glm::vec2(0.0f, 0.0f);
+	glm::vec2 m_velocity = glm::vec2(0.0f, 0.0f);
+	glm::vec2 m_acceleration = glm::vec2(0.0f, 0.0f);
+	float m_PPM = 10.0f; // pixels per meter
+	float m_time = 0.01666f; // Time step
+	float m_Atime = 0.016667f; // Accumulated time
+
+	// Physics Functions
+	void m_move();
+
+
 };
 
 #endif /* defined (__START_SCENE__) */
