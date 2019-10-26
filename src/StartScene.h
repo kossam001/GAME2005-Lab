@@ -39,19 +39,23 @@ private:
 	bool m_displayUI = true;
 
 	// Physics Variables
+	const float Deg2Rad = 0.0174532925f;
+	const float Rad2Deg = 57.2957795130f; 
 	bool m_isGravityEnabled = false;
 	float m_gravity = 9.8f;
 	glm::vec2 m_position = glm::vec2(0.0f, 0.0f);
-	glm::vec2 m_velocity = glm::vec2(0.0f, 0.0f);
+	float m_velocity = 100.0f;
+	float m_velocityX = 0.0f;
+	float m_velocityY = 0.0f;
 	glm::vec2 m_acceleration = glm::vec2(0.0f, 0.0f);
-	float m_PPM = 10.0f; // pixels per meter
+	float m_PPM = 5.0f; // pixels per meter
 	float m_time = 0.01666f; // Time step
-	float m_Atime = 0.016667f; // Accumulated time
+	float m_Atime = 0.016667f; // Accumulated time	
+
+	float m_angle = 45.0f; // Kicking angle
 
 	// Physics Functions
 	void m_move();
-
-
 };
 
 #endif /* defined (__START_SCENE__) */

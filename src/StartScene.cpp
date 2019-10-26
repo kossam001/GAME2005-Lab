@@ -304,8 +304,38 @@ void StartScene::m_updateUI()
 		m_isGravityEnabled = (m_isGravityEnabled) ? false : true;
 	}
 
+	ImGui::SameLine();
+
+	if (ImGui::Button("Reset All"))
+	{
+		m_isGravityEnabled = false;
+		m_pShip->setPosition(glm::vec2(400.0f, 300.0f));
+		m_gravity = 9.8f;
+		m_PPM = 5.0f;
+		m_Atime = 0.016667f; 
+		m_angle = 45.0f;
+		m_velocity = 100.0f;
+		m_velocityX = 0.0f;
+		m_velocityY = 0.0f;
+	}
+
 	ImGui::PushItemWidth(80);
 	if (ImGui::SliderFloat("Gravity Factor", &m_gravity, 0.1f, 30.0f, "%.1f"))
+	{
+
+	}
+
+	if (ImGui::SliderFloat("Pixels Per Meter", &m_PPM, 1.0f, 30.0f, "%.1f"))
+	{
+
+	}
+
+	if (ImGui::SliderFloat("Kicking Angle", &m_angle, 0.0f, 90.0f, "%.1f"))
+	{
+
+	}
+
+	if (ImGui::SliderFloat("Velocity", &m_velocity, 0.0f, 200.0f, "%.1f"))
 	{
 
 	}
@@ -510,11 +540,18 @@ void StartScene::m_updateUI()
 void StartScene::m_move()
 {
 	// setup for velocity and acceleration
-	m_velocity = glm::vec2(10.0f, 0.0f) * m_PPM;
+	// velocity components
+	m_velocityX = (m_velocity * m_PPM) * cos(m_angle * Deg2Rad);
+	m_velocityY = (m_velocity * m_PPM) * -sin(m_angle * Deg2Rad);
+	// final velocity vector
+	glm::vec2 velocity_vector = glm::vec2(m_velocityX, m_velocityY);
+
 	m_acceleration = glm::vec2(0.0f, m_gravity) * m_PPM;
 
-	m_position = m_pShip->getPosition() + (m_velocity * m_time) + (m_acceleration * 0.5f) * (m_Atime * m_Atime);
-	m_Atime += m_time;
+	m_position = m_pShip->getPosition() + 
+		(velocity_vector * m_time) + 
+		((m_acceleration * 0.5f) * (m_Atime * m_Atime));
 
+	m_Atime += m_time;
 	m_pShip->setPosition(m_position);
 }
