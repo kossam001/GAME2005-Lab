@@ -5,6 +5,8 @@
 #include "Scene.h"
 #include "Label.h"
 #include "ship.h"
+#include "Mine.h"
+#include "Planet.h"
 #include <cmath>
 
 class StartScene : public Scene
@@ -24,7 +26,9 @@ private:
 	/*Label* m_pStartLabel;
 	Label* m_pInstructionsLabel;*/
 
-	Ship* m_pShip;
+	Ship* m_pThermalDetonator;
+	Mine* m_pWookie;
+	Planet* m_pStormtrooper;
 
 	glm::vec2 m_mousePosition;
 
@@ -39,6 +43,7 @@ private:
 	bool m_displayUI = true;
 
 	// Physics Variables
+	float m_fScale = 10.0f;
 	const float Deg2Rad = 0.0174532925f;
 	const float Rad2Deg = 57.2957795130f; 
 	bool m_isGravityEnabled = false;
@@ -49,10 +54,15 @@ private:
 	float m_velocityY = 0.0f;
 	glm::vec2 m_acceleration = glm::vec2(0.0f, 0.0f);
 	float m_PPM = 5.0f; // pixels per meter
-	float m_time = 0.01666f; // Time step
-	float m_Atime = 0.016667f; // Accumulated time	
+	float m_time = 0.01666f * m_fScale; // Time step
+	float m_Atime = 0.016667f * m_fScale; // Accumulated time	
 
-	float m_angle = 45.0f; // Kicking angle
+	float m_angle = 14.67f; // Kicking angle
+
+	// Assignment 2 Variables
+	float m_fSTDistance = 500.0f;
+	float m_fTDWeight = 3.2f;
+	float m_fWind = 0.4f;
 
 	// Physics Functions
 	void m_move();

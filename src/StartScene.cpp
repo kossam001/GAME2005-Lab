@@ -17,10 +17,30 @@ StartScene::~StartScene()
 
 void StartScene::draw()
 {
+	TheTextureManager::Instance()->draw("scene", 400, 300,
+		TheGame::Instance()->getRenderer(), 0, 255, true);
+
+	TheTextureManager::Instance()->draw("tree", 400, 255,
+		TheGame::Instance()->getRenderer(), 0, 255, true);
+
 	/*m_pStartLabel->draw();
 	m_pInstructionsLabel->draw();*/
 
-	m_pShip->draw();
+	m_pWookie->draw();
+
+	if (m_pThermalDetonator->getPosition().y < 300)
+	{
+		m_pThermalDetonator->draw();
+	}
+
+	m_pStormtrooper->draw();
+
+	if (m_pThermalDetonator->getPosition().x - m_pStormtrooper->getPosition().x <= 1 &&
+		m_pThermalDetonator->getPosition().x - m_pStormtrooper->getPosition().x >= -1)
+	{
+		TheTextureManager::Instance()->draw("explosion", m_pStormtrooper->getPosition().x, m_pStormtrooper->getPosition().y,
+			TheGame::Instance()->getRenderer(), 0, 255, true);
+	}
 
 	// ImGui Rendering section - DO NOT MOVE OR DELETE
 	if (m_displayUI)
@@ -35,13 +55,20 @@ void StartScene::update()
 {
 	if (m_isGravityEnabled)
 	{
-		m_move();
+		if ((m_pThermalDetonator->getPosition().x - m_pStormtrooper->getPosition().x >= 1 ||
+			m_pThermalDetonator->getPosition().x - m_pStormtrooper->getPosition().x <= -1) &&
+			m_pThermalDetonator->getPosition().y <= 300)
+		{
+			m_move();
+		}
 	}
 
 	if (m_displayUI)
 	{
 		m_updateUI();
 	}
+
+	m_pStormtrooper->setPosition(glm::vec2(m_pWookie->getPosition().x + ((m_fSTDistance / m_fScale) * m_PPM), 300.0f));
 }
 
 void StartScene::clean()
@@ -49,7 +76,9 @@ void StartScene::clean()
 	/*delete m_pStartLabel;
 	delete m_pInstructionsLabel;*/
 
-	delete m_pShip;
+	delete m_pWookie;
+	delete m_pThermalDetonator;
+	delete m_pStormtrooper;
 
 	removeAllChildren();
 }
@@ -170,9 +199,24 @@ void StartScene::start()
 	m_pInstructionsLabel->setParent(this);
 	addChild(m_pInstructionsLabel)*/
 
-	m_pShip = new Ship();
-	m_pShip->setPosition(glm::vec2(400.0f, 300.0f));
-	addChild(m_pShip);
+	TheTextureManager::Instance()->load("../Assets/textures/tree.png",
+		"tree", TheGame::Instance()->getRenderer());
+
+	TheTextureManager::Instance()->load("../Assets/textures/scene.png",
+		"scene", TheGame::Instance()->getRenderer());
+
+	TheTextureManager::Instance()->load("../Assets/textures/explosion.png",
+		"explosion", TheGame::Instance()->getRenderer());
+
+	m_pWookie = new Mine();
+	m_pWookie->setPosition(glm::vec2(100.0f, 300.0f));
+	addChild(m_pWookie);
+
+	m_pThermalDetonator = new Ship();
+	m_pThermalDetonator->setPosition(glm::vec2(100.0f, 300.0f));
+
+	m_pStormtrooper = new Planet();
+	m_pStormtrooper->setPosition(glm::vec2(m_pWookie->getPosition().x + ((m_fSTDistance / m_fScale) * m_PPM), 300.0f));
 }
 
 void StartScene::m_ImGuiKeyMap()
@@ -309,14 +353,18 @@ void StartScene::m_updateUI()
 	if (ImGui::Button("Reset All"))
 	{
 		m_isGravityEnabled = false;
-		m_pShip->setPosition(glm::vec2(400.0f, 300.0f));
+		m_pThermalDetonator->setPosition(glm::vec2(100.0f, 300.0f));
 		m_gravity = 9.8f;
 		m_PPM = 5.0f;
-		m_Atime = 0.016667f; 
-		m_angle = 45.0f;
+		m_Atime = 0.016667f * m_fScale;
+		m_angle = 14.67f;
 		m_velocity = 100.0f;
 		m_velocityX = 0.0f;
 		m_velocityY = 0.0f;
+		m_fScale = 10.0f;
+		m_fSTDistance = 500.0f;
+		m_fTDWeight = 3.2f;
+		m_fWind = 0.4f;
 	}
 
 	ImGui::PushItemWidth(80);
@@ -336,6 +384,21 @@ void StartScene::m_updateUI()
 	}
 
 	if (ImGui::SliderFloat("Velocity", &m_velocity, 0.0f, 200.0f, "%.1f"))
+	{
+
+	}
+
+	if (ImGui::SliderFloat("Distance", &m_fSTDistance, 0.0f, 1100.0f, "%.1f"))
+	{
+
+	}
+
+	if (ImGui::SliderFloat("Wind", &m_fWind, -5.0f, 5.0f, "%.1f"))
+	{
+
+	}
+
+	if (ImGui::SliderFloat("Weight", &m_fTDWeight, 0.0f, 10.0f, "%.1f"))
 	{
 
 	}
@@ -541,17 +604,19 @@ void StartScene::m_move()
 {
 	// setup for velocity and acceleration
 	// velocity components
-	m_velocityX = (m_velocity * m_PPM) * cos(m_angle * Deg2Rad);
-	m_velocityY = (m_velocity * m_PPM) * -sin(m_angle * Deg2Rad);
+	m_velocityX = (m_velocity / m_fScale * m_PPM) * cos(m_angle * Deg2Rad);
+	m_velocityY = (m_velocity / m_fScale * m_PPM) * -sin(m_angle * Deg2Rad);
 	// final velocity vector
 	glm::vec2 velocity_vector = glm::vec2(m_velocityX, m_velocityY);
 
-	m_acceleration = glm::vec2(0.0f, m_gravity) * m_PPM;
+	// F / m = a
+	float wind_accel = m_fWind / m_fTDWeight;
+	m_acceleration = glm::vec2(wind_accel, m_gravity / m_fScale) * m_PPM;
 
-	m_position = m_pShip->getPosition() + 
-		(velocity_vector * m_time) + 
+	m_position = glm::vec2(100.0f, 300.0f) + 
+		(velocity_vector * m_Atime) + 
 		((m_acceleration * 0.5f) * (m_Atime * m_Atime));
 
 	m_Atime += m_time;
-	m_pShip->setPosition(m_position);
+	m_pThermalDetonator->setPosition(m_position);
 }
